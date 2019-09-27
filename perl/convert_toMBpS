@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+
+sub Mb_p_Sec {
+    @vu = split( $_[0], " " );
+    $value = $vu[ 0 ];
+    $unit  = $vu[ 1 ];
+    
+    $value =~ s/,/./g;
+    
+    %coeff = {
+        "B/c" =>  1/(1024*1024);
+        "kB/c" => 1/1024;
+        "MB/c" => 1;
+        "GB/c" => 1024;
+    }
+    
+    return $value * $coeff{ $unit }; 
+}

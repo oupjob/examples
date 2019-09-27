@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<keyboard dev_path="/dev/input/event2">
+	<key code="16" symbol="q"/>
+</keyboard>
