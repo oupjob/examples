@@ -7,12 +7,23 @@ using namespace std;
 
 int fi(int i, int j)
 {
-	cout << "f(int, int) " << i << ", " << j << endl;
+	cout << "fi(int, int) " << i << ", " << j << endl;
 	return i;
 }
 
 int fi(int i, const string& s) {
-	cout << "f(int, string) " << i << ", " << s << endl;
+	cout << "fi(int, string) " << i << ", " << s << endl;
+	return i;
+}
+
+int fj(int i, int j)
+{
+	cout << "fj(int, int) " << i << ", " << j << endl;
+	return i;
+}
+
+int fj(int i, const string& s) {
+	cout << "fj(int, string) " << i << ", " << s << endl;
 	return i;
 }
 
@@ -24,7 +35,12 @@ template <> struct Traits<string> {
 	typedef const string& 	ArgType;
 };
 
-template <typename T, int(f)(int, typename Traits<T>::ArgType), class ATraits = Traits<T> > class A 
+template <
+	typename T, 
+	int(f)(int, typename Traits<T>::ArgType) = fj, 
+	class ATraits = Traits<T> 
+> 
+class A 
 {
 private:
 	int 		i_;
@@ -41,8 +57,13 @@ int main()
 	A<int, fi> 			a_int(1, 2);
 	A<string, fi> 		a_str(1, "***");
 
+	A<int>				a_int_deflt(4, 8);
+	A<string>			a_str_deflt(4, "+++");
+
 	a_int.g();
 	a_str.g();	
+	a_int_deflt.g();
+	a_str_deflt.g();
 
 	return 0;
 }
