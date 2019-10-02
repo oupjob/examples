@@ -37,8 +37,7 @@ template <> struct Traits<string> {
 
 template <
 	typename T, 
-	int(f)(int, typename Traits<T>::ArgType) = fj, 
-	class ATraits = Traits<T> 
+	int(f)(int, typename Traits<T>::ArgType) = fj 
 > 
 class A 
 {
@@ -46,6 +45,9 @@ private:
 	int 		i_;
 	T 			x_;
 public:
+	typedef Traits<T> 			ATraits;
+	typedef ATraits::ArgType 	ArgType;
+
 	A(int i, T x) : i_(i), x_(x) {}
 	void g() {
 		f(i_, x_);
