@@ -1,0 +1,27 @@
+.DEFAULT_GOAL = all
+
+# ROOT_DIR не нужен, сборка всегда запускается в текущем каталоге
+BUILD_DIR = build
+CXX = g++
+
+SOURCES := $(wildcard *.cc)
+OBJS := $(patsubst %.cc, %.o, $(addprefix $(BUILD_DIR)/,$(SOURCES)))
+
+# создаём папку
+$(BUILD_DIR):
+	mkdir -p $@
+
+# Правило для сборки build/FOO.o из FOO.cc
+# https://www.gnu.org/software/make/manual/make.html#Implicit-Rules
+$(BUILD_DIR)/%.o : %.cc | $(BUILD_DIR)
+	@echo $< $@
+	$(CXX) -c -o $@ $<
+
+$(BUILD_DIR)/prog: $(OBJS)
+	$(CXX) -o $@ $(OBJS)
+
+all: $(BUILD_DIR)/prog
+
+clean:
+	rm -r $(BUILD_DIR)
+

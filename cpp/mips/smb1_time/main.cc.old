@@ -1,0 +1,63 @@
+#include <iostream>
+#include <stdlib.h>
+
+using namespace std;
+
+typedef uint16_t pure_smb1_time;
+
+uint32_t smb_time_to_utime(uint16_t smb_date, uint16_t smb_time)
+{
+    static const uint16_t SMB_TIME_BEGIN_YEAR = 1980;
+    static const uint16_t UTIME_BEGIN_YEAR = 1970;
+
+    enum class SMB_DATE_MASK : uint16_t
+    {
+        YEAR        = 0xFE00,   // 6 bits first
+        MONTH       = 0x01E0,   // 4 bits middle
+        DAY         = 0x001F    // 5 bits end
+    };
+
+    enum class SMB_TIME_MASK : uint16_t
+    {
+        HOUR        = 0xF800,   // 5 bits first
+        MINUTES     = 0x07E0,   // 6 bits middle
+        SECONDS     = 0x001F    // 5 bits end
+    };
+
+    uint16_t year = SMB_TIME_BEGIN_YEAR + (smb_date & SMB_DATE_MASK::YEAR); 
+    uint16_t month = smb_date & SMB_DATE_MASK::MONTH;
+    uint16_t day = smb_date & SMB_DATE_MASK::DAY;
+
+    uint16_t hour = smb_time & SMB_TIME_MASK::HOUR;
+    uint16_t minutes = smb_time & SMB_TIME_MASK::MINUTE;
+    uint16_t seconds = smb_time & SMB_TIME_MASK::SECONDS;
+
+    uint16_t leap_year_count = (year - UTIME_BEGIN_YEAR) / 4;
+    uint16_t days_before_month = 31 * (month - 1) 2 - (month / 2);
+    if (month > 2)
+        days_before_month -= (year % 4) ? 2 : 1;
+    if (month == 9)
+        days_before_month += 1;
+
+    uint32_t utime = seconds + minutes * 60 + hour * 60 * 60 
+                        + day * 60 * 60 * 24 
+                        + month * 60 * 60 * 24 + days_before_month * 60 * 60 * 24
+                        + (year - UTIME_BEGIN_YEAR) * 60 * 60 * 24 * 365 + leap_year_count;
+
+    
+    return utime;
+}
+
+int main()
+{
+    uint8_t v_date = { 0b10100000, 0b10001011 }; // 2020 02 11
+    uint8_t v_time = { 0b11000000, 0b10100001 }; // 18:05:01
+
+    uint16_t p_date = (uint16_t*)v_date;
+    uint16_t p_time = (uint16_t*)v_time;
+
+    uint32_t utime = smb_time_to_utime(*p_date, *p_time);
+
+    char buf[512];
+    
+}
