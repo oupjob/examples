@@ -1,5 +1,5 @@
+// https://programmersforum.ru/showthread.php?p=1845886#post1845886
 #include <type_traits>
-#include "TypeList.hpp"
 #include <stdio.h>
 
 struct a1_t { int x; };
@@ -11,14 +11,12 @@ struct c2_t { int z; };
 struct null_t {};
 
 
-// template <typename... Ts>
-// struct tlist
-// {
-//    using type = tlist;
-//    static constexpr size_t size() noexcept { return sizeof...(Ts); }
-// };
-
-using namespace typelist;
+template <typename... Ts>
+struct tlist
+{
+   using type = tlist;
+   static constexpr size_t size() noexcept { return sizeof...(Ts); }
+};
 
 template <template<typename T> typename Pred, typename TList>
 struct tlist_find_if_impl; // { using result = null_t; };
@@ -76,17 +74,40 @@ struct group_2_setter<T, x_group> { using setter = x_setter<T>; };
 template <typename T>
 struct group_2_setter<T, y_group> { using setter = y_setter<T>; };
 
+template <typename T, typename Group>
+struct type_2_group 
+{ 
+    template <typename H>
+    struct type_is_same_pred
+    {
+        static constexpr bool value = std::is_same<T, H>::value;
+    };
+    // using group = typename null_t_wrap<typename tlist_find_if<type_is_same_pred, Group>::result, null_group>::type;                       
+    using group = typename tlist_find_if<type_is_same_pred, Group>::result;                       
+};
+
+template <typename T, typename Group>
+struct type_in_group
+{
+    template <typename U>
+    struct is_t
+    {
+        static constexpr bool value = std::is_same_v<T, U>; 
+    };
+    static constexpr bool value = std::is_same<T, typename tlist_find_if<is_t, Group>::result>::value;
+};
+
 template <typename T, typename GroupList>
 struct group_list_2_group 
 { 
-private:
     template <typename Group>
     struct type_in_group_pred
     {
-        static constexpr bool value = std::is_same<T, typename tlist_find_if<bind<std::is_same, T>::template type, Group>::result>::value;
+        //static constexpr bool value = std::is_same<Group, typename type_2_group<T, Group>::group >::value;
+        static constexpr bool value = std::is_same<Group, typename tlist_find_if<bind<std::is_same, T>::template type, Group>::result>::value;
     };
-
-public:
+   // using group = typename null_t_wrap<typename tlist_find_if<type_in_group_pred, GroupList>::result, null_group>::type;
+//    using group = typename tlist_find_if<type_in_group_pred, GroupList>::result;
     using group = typename tlist_find_if<type_in_group_pred, GroupList>::result;
 };
 
@@ -107,32 +128,11 @@ int main()
 
     using is_same_as_a1_t = bind<std::is_same, a1_t>::type<a1_t>;
     static_assert(is_same_as_a1_t::value);
-    using a1_t_setter = type_2_setter<a1_t, group_tlist>::setter;
-    a1_t_setter::set(a1, 1);
-    
-    using a2_t_setter = type_2_setter<a2_t, group_tlist>::setter;
-    a2_t_setter::set(a2, 2);
-        
-    using b1_t_setter = type_2_setter<b1_t, group_tlist>::setter;
-    b1_t_setter::set(b1, 1);
     
     using b2_t_setter = type_2_setter<b2_t, group_tlist>::setter;
     b2_t_setter::set(b2, 2);
-
-    using b2_found = tlist_find_if<bind<std::is_same, b2_t>::type, y_group>::result;
-    static_assert(std::is_same_v<b2_found, b2_t>);
-    
-//     using b2_found_t = tlist_find_if<group_list_2_group<b2_t, group_tlist>::type_in_group_pred<y_group>::is_same_pred, y_group>::result;
-//     static_assert(std::is_same_v<b2_found_t, b2_t>);
-// //    using b2_group = group_list_2_group<b2_t, group_tlist>::group;
-//     using b2_group = tlist_find_if<group_list_2_group<b2_t, group_tlist>::type_in_group_pred, group_tlist>::result;
-//     static_assert(std::is_same_v<b2_group, y_group>);
-// 
-    using c1_t_setter = type_2_setter<c1_t, group_tlist>::setter;
-    c1_t_setter::set(c1, 2);
 
     using type = tlist_find_if<bind<std::is_same, a1_t>::type, x_group >::result; // , x_group>;
     static_assert(std::is_same_v<a1_t, type>);
     static_assert(std::is_same_v<a1_t, tlist_find_if<bind<std::is_same, a1_t>::type, x_group>::result>);
 }
-
